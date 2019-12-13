@@ -90,26 +90,21 @@ function generateMenuFile() {
         if (fs.ensureDirSync(menu[j].name)) {
             //切换目录
             changeCatalog(menu[j].name);
+            var menuCatalog = path.resolve();
             //一级目录下的jsx文件
             generateLevel1File(menu[j].pages, menu[j].name);
-           
-            //新建二级文件    
-            if (fs.ensureDirSync(firstLowerCase("pages"))) {
-                //二级目录保存
-                var level2Catalog = path.resolve(firstLowerCase("pages"));
-                //切换目录
-                changeCatalog("pages")
-                // 新建三级文件    
-                for (var i = 0, len = menu[j].pages.length; i < len; i++) {
-                    //切换到二级目录
-                    changeCatalog(level2Catalog);
-                    if (fs.ensureDirSync(menu[j].pages[i].name)) {
-                        changeCatalog(menu[j].pages[i].name)
-                        generateLevel3File(menu[j].pages[i])
-                    }
-                }
+            // 新建二级文件    
+            for (var i = 0, len = menu[j].pages.length; i < len; i++) {
+               
+                if (fs.ensureDirSync(menu[j].pages[i].name)) {
+                    changeCatalog(menu[j].pages[i].name)
+                    generateLevel2File(menu[j].pages[i])
 
+                    changeCatalog(menuCatalog);
+                    
+                }
             }
+            
         }
     }
 
@@ -128,11 +123,11 @@ function generateMenuFile() {
         var str = "";
         //导入文件
         fs.appendFileSync(
-            `index.jsx`,
-            `import React from "react";\n import { createStackNavigator } from "react-navigation";\n import TopHeader from "../../components/Header/topHeader";\n`
+            `index.js`,
+            `import React from "react";\n import { createStackNavigator } from "react-navigation";\n import TopHeader from "../../components/Header/topHeader";\n\n\n`
         );
         for (var i = 0; i < pages.length; i++) {
-            str += `import ${firstUpperCase(pages[i].name)} from "./pages/${pages[i].name}/index";\n`;
+            str += `import ${firstUpperCase(pages[i].name)} from "./${pages[i].name}/index";\n\n\n`;
         }
         //页面配置
         str += `const ${ScreenName}Stack = createStackNavigator({\n`;
@@ -152,7 +147,7 @@ function generateMenuFile() {
            return {
                tabBarVisible: navigation.state.index == 0
            };
-       };`;
+       };\n\n`;
         str += `export default ${ScreenName}Stack;`;
 
         fs.appendFileSync(`index.jsx`, str);
@@ -160,12 +155,20 @@ function generateMenuFile() {
 
 
     /* 
-      三级目录下的js文件
+      二级目录下的js文件
     */
-    function generateLevel3File(page) {
+    function generateLevel2File(page) {
 
         var str = "";
+        //引用文件
         fs.appendFileSync(`index.js`, originSource());
+
+        //注释
+        fs.appendFileSync(`index.js`,`
+        /* 
+         * ${page.label}
+         **/
+        `)
         str += `export default class ${firstUpperCase(page.name)} extends React.Component {
            constructor(props){
                super(props)
@@ -194,8 +197,8 @@ function generateMenuFile() {
            }
        }\n
            `
-        fs.appendFileSync(`${page.name}.js`, str);
-
+        fs.appendFileSync(`index.js`, str);
+       
     }
 
     /*
