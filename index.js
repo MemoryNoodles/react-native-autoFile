@@ -24,14 +24,20 @@ function generateRootFile() {
     //每个文件都要导入的基础组件
     rootStr += originSource();
     //root固有文件
-    rootStr += `import { createAppContainer, createBottomTabNavigator } from "react-navigation";
-import NavigationService from "./navigationService";\n`;
+    rootStr += `import { createAppContainer, createBottomTabNavigator } from "react-navigation"\n`;
+    rootStr += `import NavigationService from "../common/utils/navigationService"; \n import pTd from "../common/utils/unit"\n\n`;
+
     //拼接导入到root的nav组件
     for (var i = 0, l = menu.length; i < l; i++) {
         rootStr += `import ${menu[i].name}Screen from "./${menu[i].name}/index"\n`;
     }
 
-    rootStr += `import pTd from "../tools/tool"\n\n`;
+    //redux
+    rootStr += "//redux\n"
+    rootStr += `import { Provider, connect } from "react-redux"; \n
+    import { createStore } from "redux"; \n
+    import reducer from "../reducers/todos";\n\n
+    let store = createStore(reducer)\n\n`
 
     //-------------------------------------- 组件代码 ---------------------------------------
     //nav 组成的一部分
@@ -45,13 +51,13 @@ import NavigationService from "./navigationService";\n`;
     ${menu[i].name}Screen: {
         screen: ${menu[i].name}Screen,
         navigationOptions: {
-            tabBarLabel: ${menu[i].label},
+            tabBarLabel: "${menu[i].label}",
             tabBarIcon: ({ tintColor, focused }) => (
                 <HomeIconWithBadge
                     src={
                         focused
-                            ? require("./assets/img/barIcon/home-select.png")
-                            : require("./assets/img/barIcon/home-normal.png")
+                            ? require("../assets/images/navigateMenuIco/home-select.png")
+                            : require("../assets/images/navigateMenuIco/home-normal.png")
                     }  
                 />
             )
@@ -61,7 +67,7 @@ import NavigationService from "./navigationService";\n`;
     rootStr += "},\n";
 
     rootStr += ` {
-    initialRouteName: "${menu[0].name}Screen}",
+    initialRouteName: "${menu[0].name}Screen",
     tabBarOptions: {
         activeTintColor: "gray",
         inactiveTintColor: "gray",
@@ -95,16 +101,16 @@ function generateMenuFile() {
             generateLevel1File(menu[j].pages, menu[j].name);
             // 新建二级文件    
             for (var i = 0, len = menu[j].pages.length; i < len; i++) {
-               
+
                 if (fs.ensureDirSync(menu[j].pages[i].name)) {
                     changeCatalog(menu[j].pages[i].name)
                     generateLevel2File(menu[j].pages[i])
 
                     changeCatalog(menuCatalog);
-                    
+
                 }
             }
-            
+
         }
     }
 
@@ -124,10 +130,10 @@ function generateMenuFile() {
         //导入文件
         fs.appendFileSync(
             `index.js`,
-            `import React from "react";\n import { createStackNavigator } from "react-navigation";\n import TopHeader from "../../components/Header/topHeader";\n\n\n`
+            `import React from "react";\n import { createStackNavigator } from "react-navigation";\n\n`
         );
         for (var i = 0; i < pages.length; i++) {
-            str += `import ${firstUpperCase(pages[i].name)} from "./${pages[i].name}/index";\n\n\n`;
+            str += `import ${firstUpperCase(pages[i].name)} from "./${pages[i].name}/index";\n`;
         }
         //页面配置
         str += `const ${ScreenName}Stack = createStackNavigator({\n`;
@@ -150,7 +156,7 @@ function generateMenuFile() {
        };\n\n`;
         str += `export default ${ScreenName}Stack;`;
 
-        fs.appendFileSync(`index.jsx`, str);
+        fs.appendFileSync(`index.js`, str);
     }
 
 
@@ -162,14 +168,15 @@ function generateMenuFile() {
         var str = "";
         //引用文件
         fs.appendFileSync(`index.js`, originSource());
-
+        str += `import CommonHeader from "../../../common/Components/CommonHeader/CommonHeader";`
+        page.isHome && (str += `import BackHandlerHoc from "../../../common/Hoc/BackHandlerHoc/backHandlerHoc"`)
         //注释
-        fs.appendFileSync(`index.js`,`
+        fs.appendFileSync(`index.js`, `
         /* 
          * ${page.label}
          **/
         `)
-        str += `export default class ${firstUpperCase(page.name)} extends React.Component {
+        str += `class ${firstUpperCase(page.name)} extends React.Component {
            constructor(props){
                super(props)
            }
@@ -190,15 +197,18 @@ function generateMenuFile() {
         }
            render(){
                return (
-                   <View>
+                   <View style={Gstyle.container}>
+                      <CommonHeader title="${page.label}" />
                       <Text>${firstUpperCase(page.name)}</Text>
                    </View>
                )
            }
        }\n
-           `
+      `
+        str += page.isHome ? `export default BackHandlerHoc(${firstUpperCase(page.name)})` : `export default ${firstUpperCase(page.name)}`
+
         fs.appendFileSync(`index.js`, str);
-       
+
     }
 
     /*
