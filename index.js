@@ -141,9 +141,7 @@ function generateMenuFile() {
             str += `${firstUpperCase(pages[i].name)}: {
                screen: ${firstUpperCase(pages[i].name)},
                navigationOptions: ({ navigation }) => ({
-                   header: <TopHeader title="${
-                pages[i].label
-                }" navigation={navigation}/>
+                   header: null
                })
            },\n`;
         }
@@ -168,14 +166,17 @@ function generateMenuFile() {
         var str = "";
         //引用文件
         fs.appendFileSync(`index.js`, originSource());
-        str += `import CommonHeader from "../../../common/Components/CommonHeader/CommonHeader";`
-        page.isHome && (str += `import BackHandlerHoc from "../../../common/Hoc/BackHandlerHoc/backHandlerHoc"`)
+        str += `import navigationService from "../../../common/utils/navigationService";\n`
+        str += `import CommonHeader from "../../../common/Components/CommonHeader/CommonHeader";\n`
+        page.isHome && (str += `import BackHandlerHoc from "../../../common/Hoc/BackHandlerHoc/backHandlerHoc";\n\n`)
+        str += `import apiFun from "../../../ajax/apiFun";\n`
         //注释
-        fs.appendFileSync(`index.js`, `
+        str += `
         /* 
          * ${page.label}
          **/
-        `)
+        \n`
+       
         str += `class ${firstUpperCase(page.name)} extends React.Component {
            constructor(props){
                super(props)
@@ -189,12 +190,17 @@ function generateMenuFile() {
               })
            }
            async getFirstRequest() {
-            let params = this.props.navigation.getParam("params");
-            
-            await apiFun.getZX(params).then(res => {
-                return "";
-            });
-        }
+                let params = this.props.navigation.getParam("params");
+                
+                await apiFun.getZX(params).then(res => {
+                    return "";
+                });
+           }
+            goRouter(router, params){
+                navigationService.navigate(router, {
+                    params
+                })
+            }
            render(){
                return (
                    <View style={Gstyle.container}>
@@ -205,8 +211,9 @@ function generateMenuFile() {
            }
        }\n
       `
-        str += page.isHome ? `export default BackHandlerHoc(${firstUpperCase(page.name)})` : `export default ${firstUpperCase(page.name)}`
+        str += page.isHome ? `export default BackHandlerHoc(${firstUpperCase(page.name)})\n\n` : `export default ${firstUpperCase(page.name)}\n\n`
 
+        str += `const styles = StyleSheet.create({})`
         fs.appendFileSync(`index.js`, str);
 
     }

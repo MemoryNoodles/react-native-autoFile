@@ -5,7 +5,8 @@
         "pages":  [
             {
                 "label": "主页",
-                "name": "homePage"
+                "name": "homePage",
+                "isHome":true
             },
             {
                 "label": "球员",

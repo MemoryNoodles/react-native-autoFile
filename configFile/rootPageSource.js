@@ -1,8 +1,8 @@
 module.exports = ()=>{
     return `/* 主界面 */
-            class IconWithBadge extends React.Component {
+            class MenuIcon extends React.Component {
                 render() {
-                    const { name, badgeCount, color, size, src } = this.props;
+                    const { name,  src } = this.props;
                     return (
                         <View key={name} style={{ margin: 5 }}>
                             <Image
@@ -13,10 +13,7 @@ module.exports = ()=>{
                     );
                 }
             }
-            
-            const HomeIconWithBadge = props => {
-                return <IconWithBadge {...props} badgeCount={props.badgeCount} />;
-            };\n\n`
+             \n\n`
     }
 
 
