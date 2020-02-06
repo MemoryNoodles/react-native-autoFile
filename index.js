@@ -53,7 +53,7 @@ function generateRootFile() {
         navigationOptions: {
             tabBarLabel: "${menu[i].label}",
             tabBarIcon: ({ tintColor, focused }) => (
-                <HomeIconWithBadge
+                <MenuIcon
                     src={
                         focused
                             ? require("../assets/images/navigateMenuIco/home-select.png")
